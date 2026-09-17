@@ -1,0 +1,29 @@
+services:
+  lms:
+    build: .
+    container_name: lms
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    extra_hosts:
+      - "nexus:100.77.94.61"
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=False
+      - DB_HOST=${DB_HOST:-nexus}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-lms}
+      - DB_USER=${DB_USER:-db_lms_admin}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT:-587}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Loans Emporium Learning <learn@loansemporium.com>}
+      - ADMIN_ALERT_EMAIL=${ADMIN_ALERT_EMAIL:-prabhakarjha@loansemporium.com}
+    networks:
+      - nexus-net
+
+networks:
+  nexus-net:
+    external: true
