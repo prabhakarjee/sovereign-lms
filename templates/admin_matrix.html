@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Executive Compliance Matrix | Loans Emporium{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <div>
+        <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">Compliance Reporting Matrix</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Live institutional oversight across all staff course assignments and regulatory deadlines.</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+        <button onclick="document.getElementById('assignModal').style.display='flex'" class="btn btn-primary">
+            + Assign Course
+        </button>
+        <a href="/admin/export/csv/" class="btn btn-secondary">
+            📥 Export CSV Report
+        </a>
+    </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <span class="kpi-title">Active Personnel</span>
+        <span class="kpi-val">{{ total_learners }}</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-title">Active Courses</span>
+        <span class="kpi-val">{{ total_courses }}</span>
+    </div>
+    <div class="kpi-card">
+        <span class="kpi-title">Completion Rate</span>
+        <span class="kpi-val" style="color: #34d399;">{{ completion_rate }}%</span>
+    </div>
+    <div class="kpi-card" style="border-color: {% if overdue_count > 0 %}rgba(239, 68, 68, 0.4){% else %}var(--border-subtle){% endif %};">
+        <span class="kpi-title">Overdue Breaches</span>
+        <span class="kpi-val" style="color: {% if overdue_count > 0 %}#f87171{% else %}#fff{% endif %};">
+            {{ overdue_count }}
+        </span>
+    </div>
+</div>
+
+<!-- Compliance Table -->
+<div class="card" style="padding: 0; overflow-x: auto;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Learner</th>
+                <th>Assigned Course</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in assignments %}
+                <tr>
+                    <td>
+                        <div style="font-weight: 600; color: #fff;">{{ a.user.get_full_name|default:a.user.username }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ a.user.email }}</div>
+                    </td>
+                    <td>
+                        <span style="margin-right: 0.4rem;">{{ a.course.icon }}</span>
+                        <strong>{{ a.course.title }}</strong>
+                    </td>
+                    <td>
+                        {% if a.is_overdue %}
+                            <span style="color: #f87171; font-weight: 700;">{{ a.deadline }} (Overdue!)</span>
+                        {% else %}
+                            <span>{{ a.deadline }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if a.status == 'completed' %}
+                            <span class="badge badge-success">Completed</span>
+                        {% elif a.is_overdue %}
+                            <span class="badge badge-danger">Overdue Breached</span>
+                        {% else %}
+                            <span class="badge badge-warning">In Progress</span>
+                        {% endif %}
+                    </td>
+                    <td style="min-width: 140px;">
+                        <div style="font-size: 0.75rem; margin-bottom: 0.2rem;">{{ a.progress_percentage }}%</div>
+                        <div class="progress-bar-container" style="margin: 0;">
+                            <div class="progress-bar-fill" style="width: {{ a.progress_percentage }}%;"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            {% if a.status != 'completed' %}
+                                <a href="/admin/nudge/{{ a.id }}/" class="btn btn-secondary btn-sm" title="Send email nudge">
+                                    📩 Nudge
+                                </a>
+                                <a href="/admin/extend/{{ a.id }}/" class="btn btn-secondary btn-sm" title="Extend deadline by 7 days">
+                                    +7 Days
+                                </a>
+                            {% else %}
+                                <span style="color: var(--success); font-size: 0.85rem;">✓ Verified</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        No course assignments found. Click "+ Assign Course" to begin.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Dialog for Assign Course -->
+<div id="assignModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center;">
+    <div class="card" style="width: 100%; max-width: 480px; margin: 0 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 700;">Assign Course to Employee</h3>
+            <button onclick="document.getElementById('assignModal').style.display='none'" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+        <form method="POST" action="/admin/assign/">
+            {% csrf_token %}
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Select Employee</label>
+                <select name="user_id" required style="width: 100%; padding: 0.65rem; background: #0b0f19; border: 1px solid var(--border-subtle); border-radius: 8px; color: #fff;">
+                    {% for u in users %}
+                        <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }} ({{ u.email }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Select Course</label>
+                <select name="course_id" required style="width: 100%; padding: 0.65rem; background: #0b0f19; border: 1px solid var(--border-subtle); border-radius: 8px; color: #fff;">
+                    {% for c in courses %}
+                        <option value="{{ c.id }}">{{ c.icon }} {{ c.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Completion Deadline</label>
+                <input type="date" name="deadline" required style="width: 100%; padding: 0.65rem; background: #0b0f19; border: 1px solid var(--border-subtle); border-radius: 8px; color: #fff;">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" onclick="document.getElementById('assignModal').style.display='none'" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Assign Course</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

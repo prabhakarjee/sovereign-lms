@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}My Courses | Loans Emporium Learning{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+    <h1 style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em;">Welcome back, {{ user.first_name|default:user.username }}</h1>
+    <p style="color: var(--text-muted); font-size: 0.95rem;">Track your assigned compliance curriculums and deadlines below.</p>
+</div>
+
+<h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Active Assigned Courses</h2>
+
+{% if active_assignments %}
+    <div class="course-grid">
+        {% for a in active_assignments %}
+            <div class="course-card">
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                        <span style="font-size: 2rem;">{{ a.course.icon }}</span>
+                        {% if a.is_overdue %}
+                            <span class="badge badge-danger">🔴 Overdue</span>
+                        {% elif a.days_remaining <= 3 %}
+                            <span class="badge badge-warning">⚠️ Due in {{ a.days_remaining }} days</span>
+                        {% else %}
+                            <span class="badge badge-success">🗓️ Due {{ a.deadline }}</span>
+                        {% endif %}
+                    </div>
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff;">
+                        {{ a.course.title }}
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
+                        {{ a.course.description|truncatewords:20 }}
+                    </p>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted);">
+                        <span>Progress</span>
+                        <span style="font-weight: 600; color: #fff;">{{ a.progress_percentage }}%</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: {{ a.progress_percentage }}%;"></div>
+                    </div>
+                    <a href="/course/{{ a.course.slug }}/" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">
+                        {% if a.progress_percentage == 0 %}Start Course{% else %}Continue Course{% endif %}
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="card" style="text-align: center; padding: 3rem;">
+        <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎉</div>
+        <h3 style="font-size: 1.2rem; font-weight: 700;">All caught up!</h3>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.5rem;">
+            You have no pending courses assigned at this time.
+        </p>
+    </div>
+{% endif %}
+
+{% if completed_assignments %}
+    <h2 style="font-size: 1.25rem; font-weight: 700; margin: 3rem 0 1rem;">Completed Courses</h2>
+    <div class="course-grid">
+        {% for a in completed_assignments %}
+            <div class="course-card" style="border-color: rgba(16, 185, 129, 0.3);">
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="font-size: 2rem;">{{ a.course.icon }}</span>
+                        <span class="badge badge-success">✅ Completed</span>
+                    </div>
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        {{ a.course.title }}
+                    </h3>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">
+                        Completed on {{ a.completed_at|date:"M d, Y" }}
+                    </p>
+                </div>
+                <div style="margin-top: 1.5rem;">
+                    <a href="/course/{{ a.course.slug }}/" class="btn btn-secondary btn-sm" style="width: 100%;">
+                        Review Material
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

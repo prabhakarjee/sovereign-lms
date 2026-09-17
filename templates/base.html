@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Loans Emporium Learning{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header class="navbar">
+        <a href="/" class="brand">
+            <span>🛡️ Loans Emporium</span>
+            <span class="brand-badge">Learning</span>
+        </a>
+        <nav class="nav-links">
+            {% if user.is_authenticated %}
+                {% if user.is_staff %}
+                    <a href="/admin/matrix/" class="nav-link">📊 Compliance Matrix</a>
+                    <a href="/admin/ai-generator/" class="nav-link">🤖 AI Course Builder</a>
+                    <a href="/admin/" class="nav-link">⚙️ Django Admin</a>
+                {% else %}
+                    <a href="/" class="nav-link">📚 My Courses</a>
+                {% endif %}
+                <span style="color: var(--text-muted); font-size: 0.85rem;">
+                    {{ user.first_name|default:user.username }}
+                </span>
+                <a href="/logout/" class="btn btn-secondary btn-sm">Log out</a>
+            {% else %}
+                <a href="/login/" class="btn btn-primary btn-sm">Log in</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

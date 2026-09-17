@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %{{ lesson.title }} | Loans Emporium{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <a href="/course/{{ course.slug }}/" style="font-size: 0.875rem; color: var(--text-muted);">
+            ← Back to {{ course.title }}
+        </a>
+        <span style="font-size: 0.8rem; color: var(--text-faint);">Estimated reading time: {{ lesson.estimated_minutes }} mins</span>
+    </div>
+
+    <div class="card" style="padding: 2.5rem;">
+        <article class="markdown-body">
+            {{ content_html|safe }}
+        </article>
+
+        <hr style="border-color: var(--border-subtle); margin: 3rem 0 2rem;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            {% if prev_lesson %}
+                <a href="/course/{{ course.slug }}/{{ prev_lesson.slug }}/" class="btn btn-secondary btn-sm">
+                    ← Previous: {{ prev_lesson.title|truncatechars:25 }}
+                </a>
+            {% else %}
+                <div></div>
+            {% endif %}
+
+            {% if assignment %}
+                <form method="POST" action="/course/{{ course.slug }}/{{ lesson.slug }}/complete/">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        {% if progress.is_completed %}
+                            Completed ✓ (Next)
+                        {% else %}
+                            Mark as Complete & Next →
+                        {% endif %}
+                    </button>
+                </form>
+            {% endif %}
+
+            {% if next_lesson %}
+                <a href="/course/{{ course.slug }}/{{ next_lesson.slug }}/" class="btn btn-secondary btn-sm">
+                    Next: {{ next_lesson.title|truncatechars:25 }} →
+                </a>
+            {% else %}
+                <div></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

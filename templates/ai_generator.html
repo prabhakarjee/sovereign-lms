@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Course Generator | Loans Emporium{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 1.85rem; font-weight: 800; letter-spacing: -0.02em;">🤖 AI Course & Curriculum Builder</h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+            Paste an internal Standard Operating Procedure (SOP), compliance circular, or policy document to synthesize a structured 3-module training curriculum automatically.
+        </p>
+    </div>
+
+    <div class="card" style="padding: 2rem;">
+        <form method="POST" action="/admin/ai-generator/">
+            {% csrf_token %}
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; color: #fff;">
+                    Course Title
+                </label>
+                <input type="text" name="title" required placeholder="e.g. Loans Emporium — Fair Lending & Consumer Protection 2026"
+                       style="width: 100%; padding: 0.75rem; background: #0b0f19; border: 1px solid var(--border-subtle); border-radius: 8px; color: #fff; font-size: 0.95rem;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; color: #fff;">
+                    Source SOP / Policy Text
+                </label>
+                <textarea name="sop_text" rows="12" required placeholder="Paste internal guidelines, regulatory clauses, or standard operating procedure notes here..."
+                          style="width: 100%; padding: 0.85rem; background: #0b0f19; border: 1px solid var(--border-subtle); border-radius: 8px; color: #fff; font-size: 0.9rem; font-family: monospace; line-height: 1.5;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <a href="/admin/matrix/" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    ✨ Generate Structured Course
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
