@@ -278,3 +278,99 @@ def ai_generator_view(request):
         return redirect('course_detail', slug=course.slug)
 
     return render(request, 'ai_generator.html')
+
+
+# ─── Authentik OIDC Single Sign-On ───────────────────────────────────────────
+import secrets
+import json
+import urllib.request
+import urllib.parse
+
+def sso_login(request):
+    next_url = request.GET.get('next', '/')
+    state = secrets.token_urlsafe(16)
+    request.session['oauth_state'] = state
+    request.session['oauth_next'] = next_url
+
+    params = {
+        'client_id': settings.AUTHENTIK_CLIENT_ID,
+        'response_type': 'code',
+        'redirect_uri': settings.AUTHENTIK_REDIRECT_URI,
+        'scope': 'openid email profile',
+        'state': state,
+    }
+    authorize_url = f"{settings.AUTHENTIK_URL.rstrip('/')}/application/o/authorize/?{urllib.parse.urlencode(params)}"
+    return redirect(authorize_url)
+
+def sso_callback(request):
+    code = request.GET.get('code')
+    state = request.GET.get('state')
+    expected_state = request.session.get('oauth_state')
+
+    if not code:
+        messages.error(request, 'SSO Authentication failed: no code provided.')
+        return redirect('login')
+
+    token_url = f"{settings.AUTHENTIK_URL.rstrip('/')}/application/o/token/"
+    token_payload = urllib.parse.urlencode({
+        'grant_type': 'authorization_code',
+        'client_id': settings.AUTHENTIK_CLIENT_ID,
+        'client_secret': settings.AUTHENTIK_CLIENT_SECRET,
+        'redirect_uri': settings.AUTHENTIK_REDIRECT_URI,
+        'code': code,
+    }).encode('utf-8')
+
+    try:
+        req = urllib.request.Request(token_url, data=token_payload, headers={
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 SovereignLMS/1.0',
+        })
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            token_data = json.loads(resp.read().decode('utf-8'))
+        
+        access_token = token_data.get('access_token')
+        if not access_token:
+            messages.error(request, 'Failed to retrieve access token from Authentik.')
+            return redirect('login')
+
+        userinfo_url = f"{settings.AUTHENTIK_URL.rstrip('/')}/application/o/userinfo/"
+        user_req = urllib.request.Request(userinfo_url, headers={
+            'Authorization': f'Bearer {access_token}',
+            'User-Agent': 'Mozilla/5.0 SovereignLMS/1.0',
+        })
+        with urllib.request.urlopen(user_req, timeout=10) as resp:
+            userinfo = json.loads(resp.read().decode('utf-8'))
+
+        email = (userinfo.get('email') or '').strip().lower()
+        username = (userinfo.get('preferred_username') or '').strip()
+        if not username and email:
+            username = email.split('@')[0]
+        if not username:
+            username = userinfo.get('sub', 'authentik_user')
+
+        name = userinfo.get('name', '')
+        groups = userinfo.get('groups', [])
+
+        user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+        if email and not user.email:
+            user.email = email
+        if name and not (user.first_name or user.last_name):
+            parts = name.split(' ', 1)
+            user.first_name = parts[0]
+            if len(parts) > 1:
+                user.last_name = parts[1]
+        
+        # Grant admin privilege if in authentik Admins or recognized admin
+        if 'authentik Admins' in groups or email == 'prabhakarjha@loansemporium.com' or username == 'prabhakarjee':
+            user.is_staff = True
+            user.is_superuser = True
+        
+        user.save()
+
+        auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+        next_url = request.session.get('oauth_next', '/')
+        return redirect(next_url)
+
+    except Exception as e:
+        messages.error(request, f'SSO Error: {str(e)}')
+        return redirect('login')

@@ -4,6 +4,10 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('login/', views.login_view, name='login'),
+    # Authentik OIDC Single Sign-On
+    path('auth/sso/', views.sso_login, name='sso_login'),
+    path('auth/callback/', views.sso_callback, name='sso_callback'),
+
     path('logout/', views.logout_view, name='logout'),
     path('course/<slug:slug>/', views.course_detail, name='course_detail'),
     path('course/<slug:course_slug>/<slug:lesson_slug>/', views.lesson_view, name='lesson_view'),

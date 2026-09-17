@@ -122,3 +122,9 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Loans Emporium Learning <learn@loansemporium.com>')
 ADMIN_ALERT_EMAIL = os.environ.get('ADMIN_ALERT_EMAIL', 'prabhakarjha@loansemporium.com')
+
+# Authentik OIDC Single Sign-On
+AUTHENTIK_URL = os.environ.get('AUTHENTIK_URL', 'https://portal.loansemporium.com')
+AUTHENTIK_CLIENT_ID = os.environ.get('AUTHENTIK_CLIENT_ID', 'learn')
+AUTHENTIK_CLIENT_SECRET = os.environ.get('AUTHENTIK_CLIENT_SECRET', 'lms_sec_k9X7vQ2mP8wZ4bJ1yN3tR6sE0uA5cFdG')
+AUTHENTIK_REDIRECT_URI = os.environ.get('AUTHENTIK_REDIRECT_URI', 'https://learn.loansemporium.com/auth/callback/')
