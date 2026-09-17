@@ -1,3 +1,4 @@
+import os
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 from core.models import Course, Lesson, CourseAssignment
@@ -8,24 +9,28 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # 1. Seed Global Admin
-        admin_user = 'prabhakarjee'
-        admin_email = 'prabhakarjha@loansemporium.com'
-        admin_pass = '9Q6Ovhb5QR0IY69AphI8wIbe'
+        admin_user = os.environ.get('ADMIN_USERNAME', 'prabhakarjee')
+        admin_email = os.environ.get('ADMIN_EMAIL', 'prabhakarjha@loansemporium.com')
+        admin_pass = os.environ.get('ADMIN_PASSWORD', '9Q6Ovhb5QR0IY69AphI8wIbe')
 
-        if not User.objects.filter(username=admin_user).exists():
-            User.objects.create_superuser(
-                username=admin_user,
-                email=admin_email,
-                password=admin_pass,
-                first_name='Prabhakar',
-                last_name='Jha'
-            )
-            self.stdout.write(self.style.SUCCESS(f"✅ Created superuser: {admin_user}"))
-        else:
-            self.stdout.write(f"ℹ️ Superuser {admin_user} already exists.")
+        admin, created = User.objects.get_or_create(
+            username=admin_user,
+            defaults={
+                'email': admin_email,
+                'first_name': 'Prabhakar',
+                'last_name': 'Jha',
+                'is_staff': True,
+                'is_superuser': True,
+            }
+        )
+        admin.set_password(admin_pass)
+        admin.is_staff = True
+        admin.is_superuser = True
+        admin.save()
+        self.stdout.write(self.style.SUCCESS(f"✅ Superuser '{admin_user}' configured."))
 
         # 2. Seed Sample Employee
-        emp_user, created = User.objects.get_or_create(
+        emp_user, emp_created = User.objects.get_or_create(
             username='sundarjha',
             defaults={
                 'email': 'sundarjha@loansemporium.com',
@@ -33,7 +38,7 @@ class Command(BaseCommand):
                 'last_name': 'Jha'
             }
         )
-        if created:
+        if emp_created:
             emp_user.set_password('Sovereign123!')
             emp_user.save()
             self.stdout.write(self.style.SUCCESS("✅ Created sample employee: sundarjha"))
@@ -114,7 +119,7 @@ All borrower data stored across Loans Emporium infrastructure is protected by Da
             user=emp_user,
             course=course,
             defaults={
-                'assigned_by': User.objects.get(username=admin_user),
+                'assigned_by': admin,
                 'deadline': date.today() + timedelta(days=7),
                 'status': 'assigned',
             }
