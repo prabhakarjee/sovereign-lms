@@ -12,7 +12,7 @@
         <button onclick="document.getElementById('assignModal').style.display='flex'" class="btn btn-primary">
             + Assign Course
         </button>
-        <a href="/admin/export/csv/" class="btn btn-secondary">
+        <a href="/reports/export/csv/" class="btn btn-secondary">
             📥 Export CSV Report
         </a>
     </div>
@@ -89,10 +89,10 @@
                     <td>
                         <div style="display: flex; gap: 0.5rem;">
                             {% if a.status != 'completed' %}
-                                <a href="/admin/nudge/{{ a.id }}/" class="btn btn-secondary btn-sm" title="Send email nudge">
+                                <a href="/assignments/nudge/{{ a.id }}/" class="btn btn-secondary btn-sm" title="Send email nudge">
                                     📩 Nudge
                                 </a>
-                                <a href="/admin/extend/{{ a.id }}/" class="btn btn-secondary btn-sm" title="Extend deadline by 7 days">
+                                <a href="/assignments/extend/{{ a.id }}/" class="btn btn-secondary btn-sm" title="Extend deadline by 7 days">
                                     +7 Days
                                 </a>
                             {% else %}
@@ -119,7 +119,7 @@
             <h3 style="font-size: 1.25rem; font-weight: 700;">Assign Course to Employee</h3>
             <button onclick="document.getElementById('assignModal').style.display='none'" style="background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
         </div>
-        <form method="POST" action="/admin/assign/">
+        <form method="POST" action="/assignments/create/">
             {% csrf_token %}
             <div style="margin-bottom: 1rem;">
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem;">Select Employee</label>

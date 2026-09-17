@@ -12,7 +12,7 @@
     </div>
 
     <div class="card" style="padding: 2rem;">
-        <form method="POST" action="/admin/ai-generator/">
+        <form method="POST" action="/ai-generator/">
             {% csrf_token %}
             <div style="margin-bottom: 1.5rem;">
                 <label style="display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; color: #fff;">
@@ -31,7 +31,7 @@
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 1rem;">
-                <a href="/admin/matrix/" class="btn btn-secondary">Cancel</a>
+                <a href="/matrix/" class="btn btn-secondary">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                     ✨ Generate Structured Course
                 </button>

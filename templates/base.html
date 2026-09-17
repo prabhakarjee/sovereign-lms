@@ -16,8 +16,8 @@
         <nav class="nav-links">
             {% if user.is_authenticated %}
                 {% if user.is_staff %}
-                    <a href="/admin/matrix/" class="nav-link">📊 Compliance Matrix</a>
-                    <a href="/admin/ai-generator/" class="nav-link">🤖 AI Course Builder</a>
+                    <a href="/matrix/" class="nav-link">📊 Compliance Matrix</a>
+                    <a href="/ai-generator/" class="nav-link">🤖 AI Course Builder</a>
                     <a href="/admin/" class="nav-link">⚙️ Django Admin</a>
                 {% else %}
                     <a href="/" class="nav-link">📚 My Courses</a>
